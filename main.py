@@ -1,77 +1,88 @@
+from flask import Flask
+
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver import Keys
 from selenium.webdriver.common.by import By
 from twilio.rest import Client
-# Your Twilio account sid and auth token
+
 account_sid = 'AC8c7f8fcb6b0418e5882193f3143676d0'
 auth_token = '30b7a8b1e7a7081257e0f7f84738b144'
 
-# Create a Twilio client
 cl = Client(account_sid, auth_token)
 
 import time
-import winsound
 import sys
 
-PATH = "C:\Program Files\chromedriver.exe"
-service = Service(PATH)
-driver = WebDriver(service=service)
+app = Flask(__main__)
 
-driver.get("https://absencesub.frontlineeducation.com/Substitute/Home")
-driver.minimize_window()
-time.sleep(10)
 
-username = driver.find_element(By.ID, 'Username')
-username.clear()
-username.send_keys("rpapazian41")
+@app.route('/run-script')
+def run_script():
+    PATH = "C:\Program Files\chromedriver.exe"
+    service = Service(PATH)
+    driver = WebDriver(service=service)
 
-time.sleep(2)
+    driver.get("https://absencesub.frontlineeducation.com/Substitute/Home")
+    driver.minimize_window()
+    time.sleep(10)
 
-password = driver.find_element(By.ID, 'Password')
-password.clear()
-password.send_keys("Flyersfan4!")
+    username = driver.find_element(By.ID, 'Username')
+    username.clear()
+    username.send_keys("rpapazian41")
 
-time.sleep(2)
+    time.sleep(2)
 
-password.send_keys(Keys.RETURN)
+    password = driver.find_element(By.ID, 'Password')
+    password.clear()
+    password.send_keys("Flyersfan4!")
 
-time.sleep(10)
+    time.sleep(2)
 
-for i in range(24):
-    availableJobs = driver.find_element(By.ID, "availableJobs")
-    elements = availableJobs.find_elements(By.CLASS_NAME, "job")
-    jobFound = False
-    schools = ["TRABUCO HILLS HIGH SCHOOL", "MISSION VIEJO HIGH SCHOOL", "EL TORO HIGH SCHOOL", "LAGUNA HILLS HIGH SCHOOL"]
-    subjects = ["MATH", "SOCIAL SCIENCE", "SCIENCE - BIOLOGY", "SCIENCE - CHEMISTRY", "ENGLISH", "HEALTH", "TECH ED - VIDEO", "DRAMA/THEATER", "FOREIGN LANG SPANISH", "ART", "MUSIC", "PHYSICAL EDUCATION"]
-    for element in elements:
-        locationName = element.find_element(By.CLASS_NAME, "locationName")
+    password.send_keys(Keys.RETURN)
 
-        if locationName.get_attribute("textContent") in schools:
-            highschool = locationName.get_attribute("textContent")
+    time.sleep(10)
 
-            subjectName = element.find_element(By.CLASS_NAME, "title")
+    for i in range(12):
+        availableJobs = driver.find_element(By.ID, "availableJobs")
+        elements = availableJobs.find_elements(By.CLASS_NAME, "job")
+        jobFound = False
+        schools = ["TRABUCO HILLS HIGH SCHOOL", "MISSION VIEJO HIGH SCHOOL", "EL TORO HIGH SCHOOL",
+                   "LAGUNA HILLS HIGH SCHOOL"]
+        subjects = ["MATH", "SOCIAL SCIENCE", "SCIENCE - BIOLOGY", "SCIENCE - CHEMISTRY", "SCIENCE - PHYSICS",
+                    "ENGLISH", "HEALTH", "TECH ED - VIDEO", "TECH ED - PHOTO", "DRAMA/THEATER", "FOREIGN LANG SPANISH",
+                    "ART", "MUSIC", "PHYSICAL EDUCATION"]
+        for element in elements:
+            locationName = element.find_element(By.CLASS_NAME, "locationName")
 
-            if subjectName.get_attribute("textContent") in subjects:
-                subject_title = subjectName.get_attribute("textContent")
-                print(f"{subject_title} available at {highschool}")
-                jobFound = True
-                break
+            if locationName.get_attribute("textContent") in schools:
+                highschool = locationName.get_attribute("textContent")
 
-    if jobFound == False:
-        print("No jobs found")
-    else:
-        # Send a text message
-        message = cl.messages.create(
-            body='Look at new job',
-            from_='+18333620451',
-            to='+19496977678'
-        )
-        # Print the message SID
-        print(message.sid)
-        sys.exit()
+                subjectName = element.find_element(By.CLASS_NAME, "title")
 
-    time.sleep(300)
-    driver.refresh()
-    time.sleep(30)
-print("done")
+                if subjectName.get_attribute("textContent") in subjects:
+                    subject_title = subjectName.get_attribute("textContent")
+                    print(f"{subject_title} available at {highschool}")
+                    jobFound = True
+                    break
+
+        if jobFound == False:
+            print("No jobs found")
+        else:
+
+            message = cl.messages.create(
+                body='Look at new job',
+                from_='+18333620451',
+                to='+19496977678'
+            )
+
+            print(message.sid)
+            driver.quit()
+            return "Script successfully ran and message sent!"
+
+        time.sleep(300)
+        driver.refresh()
+        time.sleep(30)
+
+    driver.quit()
+    return "No jobs found after 12 attempts."
