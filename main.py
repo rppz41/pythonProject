@@ -17,7 +17,7 @@ import sys
 app = Flask(__main__)
 
 
-@app.route('/run-script')
+@app.route('/')
 def run_script():
     PATH = "C:\Program Files\chromedriver.exe"
     service = Service(PATH)
